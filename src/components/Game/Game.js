@@ -1,15 +1,47 @@
-import React from 'react';
+import React, { useState } from "react";
 
-import { sample } from '../../utils';
-import { WORDS } from '../../data';
+import { sample } from "../../utils";
+import { WORDS } from "../../data";
+import { checkGuess } from "../../game-helpers";
 
-// Pick a random word on every pageload.
-const answer = sample(WORDS);
-// To make debugging easier, we'll log the solution in the console.
-console.info({ answer });
+import GuessInput from "../GuessInput";
+import GuessResults from "../GuessResults";
+import Banner from "../Banner/Banner";
 
 function Game() {
-  return <>Put a game here!</>;
+  const [answer, setAnswer] = useState(sample(WORDS));
+  const [guessList, setGuessList] = useState([]);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleNewWordSubmit = (guess) => {
+    const result = checkGuess(guess, answer);
+    if (result.filter((item) => item.status === "correct").length === 5) {
+      setIsSuccess(true);
+    }
+    setGuessList([...guessList, result]);
+  };
+
+  const handleRestart = () => {
+    setAnswer(sample(WORDS));
+    setGuessList([]);
+    setIsSuccess(false);
+  }
+
+  return (
+    <>
+      <GuessResults guessList={guessList} />
+      {isSuccess || guessList.length === 6 ? (
+        <Banner
+          numberOfGuesses={guessList.length}
+          isSuccess={isSuccess}
+          answer={answer}
+          onRestart={handleRestart}
+        />
+      ) : (
+        <GuessInput onSubmit={handleNewWordSubmit} />
+      )}
+    </>
+  );
 }
 
 export default Game;
